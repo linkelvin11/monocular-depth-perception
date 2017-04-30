@@ -74,9 +74,7 @@ if __name__ == '__main__':
                 , filtered_label_glob
                 , crop_shape, batch_size=batch_size)
             
-            t = Trainer(sess, m)
-            # f = FileReader('./images/sets/train/*.JPEG', (args.subimage_size, args.subimage_size), batch_size=args.batch_size)
-            # v = FileReader('./images/sets/validation/*.JPEG', (args.subimage_size, args.subimage_size), batch_size=args.batch_size)
+            t = Trainer(sess, m, f)
 
             sess.run(tf.global_variables_initializer())
             saver = tf.train.Saver(tf.trainable_variables())
@@ -85,9 +83,7 @@ if __name__ == '__main__':
             except:
                 print('No save file found.  Creating new file at {}'.format(args.model));
             f.start_queue_runners()
-            # v.start_queue_runners()
-            t.train(f.get_batch(), saver=saver, path=args.model)
-            # v.stop_queue_runners()
+            t.train(saver=saver, path=args.model)
             f.stop_queue_runners()
     elif args.mode == 'generate':
         if args.input is None:

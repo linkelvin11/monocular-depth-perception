@@ -4,7 +4,7 @@ import tensorflow as tf
 import random
 import numpy as np
 
-def create_input_pipeline_from_files_list(image_list, label_list, batch_size):
+def create_input_pipeline_from_files_list(image_list, label_list, crop_shape, batch_size):
     filename_queue = tf.train.slice_input_producer([
         image_list
         , label_list
@@ -59,9 +59,9 @@ class FileReader():
         train_images, val_images = tf.dynamic_partition(image_glob, partition, 2)
         train_labels, val_labels = tf.dynamic_partition(label_glob, partition, 2)
 
-        self.batch = create_input_pipeline_from_files_list(train_images, train_labels, batch_size)
+        self.batch = create_input_pipeline_from_files_list(train_images, train_labels, crop_shape, batch_size)
 
-        self.val_batch = create_input_pipeline_from_files_list(val_images, val_labels, batch_size)
+        self.val_batch = create_input_pipeline_from_files_list(val_images, val_labels, crop_shape, batch_size)
 
     def get_batch(self):
         """

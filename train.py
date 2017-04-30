@@ -6,9 +6,10 @@ import tensorflow as tf
 save_path = "./saved_model/model.ckpt"
 
 class Trainer():
-    def __init__(self, sess, model):
+    def __init__(self, sess, model, fileReader):
         self.sess = sess
         self.model = model
+        self.fileReader = fileReader
         self.optimizer = tf.train.AdamOptimizer(0.0001).minimize(model.loss)
 
     def train_iter(self, batcher, validate=False, saver=None, path=None, val=None):
@@ -17,13 +18,14 @@ class Trainer():
         label_batch = batch[1]
         self.sess.run(self.optimizer, feed_dict={self.model.input: input_batch, self.model.label: label_batch})
 
-    def train(self, batcher, saver=None, path=None, val=None):
-        if val is None:
-            val = batcher
+    def train(self, saver=None, path=None, val=None):
+
         for i in range(100000000):
-            self.train_iter(batcher, i % 10 == 0, saver=saver, path=path, val=val)
+            train_batch = self.fileReader.get_batch()
+            self.train_iter(train_batch, i % 10 == 0, saver=saver, path=path, val=val)
             if i % 100 == 0:
-                self.val(batcher, saver=saver, path=path, iteration=i)
+                val_batch = self.fileReader.get_val_batch()
+                self.val(val_batch, saver=saver, path=path, iteration=i)
 
     def val(self, batcher, saver=None, path=None, val=None, iteration=0):
         batch = self.sess.run(batcher)
@@ -39,26 +41,4 @@ class Trainer():
         print('loss: {}\tmag: {}\tlabel_mag: {}\titeration: {}'.format(loss, mag, label_mag, iteration))
         if saver and path:
             sp = saver.save(self.sess, path)
-        
 
-if __name__ == '__main__':
-    batch_size = 512
-    import model
-    from files import FileReader
-    m = model.Model(batch_size=batch_size)
-    m.build_model()
-    with tf.Session() as sess:
-        t = Trainer(sess, m)
-        f = FileReader('./images/sets/train/*.JPEG', (33, 33), batch_size=batch_size)
-        v = FileReader('./images/sets/validation/*.JPEG', (33, 33), batch_size=batch_size)
-        sess.run(tf.global_variables_initializer())
-        saver = tf.train.Saver(tf.global_variables())
-        try:
-            saver.restore(sess,save_path)
-        except:
-            print('Error while restoring');
-        f.start_queue_runners()
-        v.start_queue_runners()
-        t.train(f.get_batch(), val=v.get_batch())
-        v.stop_queue_runners()
-        f.stop_queue_runners()
