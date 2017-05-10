@@ -135,8 +135,8 @@ if __name__ == '__main__':
 
             output, orig = sess.run(
                     [
-                        normalize_for_output(m.output)*scale
-                        , normalize_for_output(m.input)*scale
+                        m.output*scale
+                        , m.input*scale
                     ]
                     ,  feed_dict={m.input: batch.eval()}
                 )

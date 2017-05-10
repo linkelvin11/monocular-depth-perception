@@ -53,15 +53,19 @@ class FileReader():
         """
 
         np.random.seed(seed=1234)
-        partition = np.random.binomial(1, 0.01, size=[len(image_glob)])
+        partition = np.random.choice(3, len(image_glob), p=[0.98, 0.01, 0.01])
         np.random.seed()
 
-        train_images, val_images = tf.dynamic_partition(image_glob, partition, 2)
-        train_labels, val_labels = tf.dynamic_partition(label_glob, partition, 2)
+        train_images, val_images, test_images = tf.dynamic_partition(image_glob, partition, 3)
+        train_labels, val_labels, test_labels = tf.dynamic_partition(label_glob, partition, 3)
+
+        print (val_labels.eval())
 
         self.batch = create_input_pipeline_from_files_list(train_images, train_labels, crop_shape, batch_size)
 
         self.val_batch = create_input_pipeline_from_files_list(val_images, val_labels, crop_shape, batch_size)
+
+        self.test_batch = create_input_pipeline_from_files_list(test_images, test_labels, crop_shape, batch_size)
 
     def get_batch(self):
         """
